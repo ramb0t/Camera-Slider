@@ -43,79 +43,125 @@ void OLED_Update() {
   int X;
   int Y;
 
-  // print first line:
-  X = 0; Y = 0;
-  // Time: H.M.S
-  display.setCursor(X,Y);
-  display.print("Time:H.M.S");
+  // Time Page:
+  if(item == HOUR_ITEM || item == MIN_ITEM || item == SEC_ITEM || item == STARTITEM){
+    // print first line:
+    X = 0; Y = 0;
+    // Time: H.M.S
+    display.setCursor(X,Y);
+    display.print("Time:H.M.S");
 
-  // print second line:
-  // |x| |x| |x| |GO|
-  // Hours:
-  X = 0; Y = 20;
-  if(itemSelect && item == HOUR_ITEM){    //Selected > Draw Filled Rect
-    display.fillRect(X,Y,16,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.setTextColor(BLACK);
-    display.print(hours);
-    display.setTextColor(WHITE);
-  }else if(item == HOUR_ITEM){            //Hover    > Draw Rect
-    display.drawRect(X,Y,16,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.print(hours);
-  }else{                                  // Just Print Value
-    display.setCursor(X+3,Y+3);
-    display.print(hours);
-  }
-  // Minutes:
-  X = X + 20;
-  if(itemSelect && item == MIN_ITEM){     //Selected > Draw Filled Rect
-    display.fillRect(X,Y,28,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.setTextColor(BLACK);
-    display.print(minutes);
-    display.setTextColor(WHITE);
-  }else if(item == MIN_ITEM){             //Hover    > Draw Rect
-    display.drawRect(X,Y,28,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.print(minutes);
-  }else{                                  // Just Print Value
-    display.setCursor(X+3,Y+3);
-    display.print(minutes);
-  }
-  // Seconds:
-  X = X + 32;
-  if(itemSelect && item == SEC_ITEM){     //Selected > Draw Filled Rect
-    display.fillRect(X,Y,28,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.setTextColor(BLACK);
-    display.print(seconds);
-    display.setTextColor(WHITE);
-  }else if(item == SEC_ITEM){             //Hover    > Draw Rect
-    display.drawRect(X,Y,28,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.print(seconds);
-  }else{                                  // Just Print Value
-    display.setCursor(X+3,Y+3);
-    display.print(seconds);
-  }
-  // Go!:
-  X = X + 34;
-  if(itemSelect && item == STARTITEM){    //Selected > Draw Filled Rect
-    display.fillRect(X,Y,37,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.setTextColor(BLACK);
-    display.print("GO!");
-    display.setTextColor(WHITE);
-  }else if(item == STARTITEM){            //Hover    > Draw Rect
-    display.drawRect(X,Y,37,20,WHITE);
-    display.setCursor(X+3,Y+3);
-    display.print("GO!");
-  }else{                                  // Just Print Value 
-    display.setCursor(X+3,Y+3);
-    display.print("GO!");
-  }
+    // print second line:
+    // |x| |x| |x| |GO|
+    // Hours:
+    X = 0; Y = 20;
+    if(itemSelect && item == HOUR_ITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,16,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print(hours);
+      display.setTextColor(WHITE);
+    }else if(item == HOUR_ITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,16,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print(hours);
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print(hours);
+    }
+    // Minutes:
+    X = X + 20;
+    if(itemSelect && item == MIN_ITEM){     //Selected > Draw Filled Rect
+      display.fillRect(X,Y,28,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print(minutes);
+      display.setTextColor(WHITE);
+    }else if(item == MIN_ITEM){             //Hover    > Draw Rect
+      display.drawRect(X,Y,28,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print(minutes);
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print(minutes);
+    }
+    // Seconds:
+    X = X + 32;
+    if(itemSelect && item == SEC_ITEM){     //Selected > Draw Filled Rect
+      display.fillRect(X,Y,28,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print(seconds);
+      display.setTextColor(WHITE);
+    }else if(item == SEC_ITEM){             //Hover    > Draw Rect
+      display.drawRect(X,Y,28,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print(seconds);
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print(seconds);
+    }
+    // Go!:
+    X = X + 34;
+    if(itemSelect && item == STARTITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,37,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print("GO!");
+      display.setTextColor(WHITE);
+    }else if(item == STARTITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,37,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print("GO!");
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print("GO!");
+    }
 
+    // print third line:
+    // calibrate
+    X = 0; Y = 44;
+    display.setCursor(X, Y);
+    display.setTextSize(1);
+    display.print("Calibrate ");
+    display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
+  } // end first page
+  // Second Page: Calibrate
+  else if(item == CAL_ITEM){
+    // print first line:
+    display.setTextSize(2);
+    X = 0; Y = 0;
+    // |Calibrate|
+    if(itemSelect && item == CAL_ITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print("Calibrate");
+      display.setTextColor(WHITE);
+    }else if(item == CAL_ITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print("Calibrate");
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print("Calibrate");
+    }
+
+    // print second line:
+    X = 0; Y = 22;
+    // Steps:
+    display.setCursor(X, Y);
+    display.print("Stps:");
+    display.print(calibration_steps);
+
+    // print third line:
+    // time
+    X = 0; Y = 42;
+    display.setCursor(X, Y);
+    display.setTextSize(1);
+    display.print("Time ");
+    display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
+  } // end second page
 
   // if(menuSelect == true && menu == SPEEDMENU){ // draw filled rect if selected
   //   display.fillRect(74,0,35,16,WHITE);

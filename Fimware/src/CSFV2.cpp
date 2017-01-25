@@ -10,6 +10,7 @@
 // #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 // #include <Fonts/FreeMono9pt7b.h>
+#include <EEPROM.h>
 #include "pinDefines.h"
 #include "Timer1.h"
 #include "Global.h"
@@ -68,6 +69,12 @@
 
 #define HOURS_MAX   3
 
+// ID of the settings block
+#define CONFIG_VERSION "ls1"
+
+// Tell it where to store your config data in EEPROM
+#define CONFIG_START 32
+
 // Variable declarations
 /******************************************************************************/
 // debug enable
@@ -114,6 +121,26 @@ byte minutes;
 byte seconds;
 int  totalRunTime;
 
+// Structs
+/******************************************************************************/
+// Example settings structure
+struct StoreStruct {
+  // This is for mere detection if they are your settings
+  char version[4];
+  // The variables of your settings
+  //int a, b;
+  //char c;
+  long c_steps;
+  //float e[6];
+} storage = {
+  CONFIG_VERSION,
+  // The default values
+  //220, 1884,
+  //'c',
+  10000
+  //{4.5, 5.5, 7, 8.5, 10, 12}
+};
+
 // Function prototypes
 /******************************************************************************/
 int read_buttons();
@@ -131,6 +158,8 @@ void inc_mins();
 void dec_mins();
 void inc_secs();
 void dec_secs();
+void loadConfig();
+void saveConfig();
 
 // Functions
 /******************************************************************************/
@@ -170,6 +199,9 @@ void setup() {
   digitalWrite(LEDB, LOW);
   dirFlag = false;
 
+  // Load vals from EEPROM
+  loadConfig();
+  calibration_steps = storage.c_steps;
 
   // OLED Display setup
   OLED_Init();
@@ -264,6 +296,9 @@ void loop() {
     }else if(item == SEC_ITEM){ // Adjust seconds
       if(encoder_result == 1)       inc_secs();
       else if(encoder_result == -1) dec_secs();
+    }else if(item == CAL_ITEM){ // Calibrate
+      calibrate();
+      itemSelect = false;
     }
   }
 
@@ -394,6 +429,8 @@ void calibrate(){
 
   // store steps counted
   calibration_steps = step_count;
+  storage.c_steps = calibration_steps;
+  saveConfig(); // save to EEPROM
   display.clearDisplay();
   display.setCursor(0,1);
   display.print("Steps: ");
@@ -487,6 +524,23 @@ void dec_secs(){
   else { seconds = 59; dec_mins(); }
 }
 
+// EEPROM stuffs
+void loadConfig() {
+  // To make sure there are settings, and they are YOURS!
+  // If nothing is found it will use the default settings.
+  if (EEPROM.read(CONFIG_START + 0) == CONFIG_VERSION[0] &&
+      EEPROM.read(CONFIG_START + 1) == CONFIG_VERSION[1] &&
+      EEPROM.read(CONFIG_START + 2) == CONFIG_VERSION[2])
+    for (unsigned int t=0; t<sizeof(storage); t++)
+      *((char*)&storage + t) = EEPROM.read(CONFIG_START + t);
+}
+
+void saveConfig() {
+  for (unsigned int t=0; t<sizeof(storage); t++)
+    EEPROM.write(CONFIG_START + t, *((char*)&storage + t));
+}
+
+// ISR for pin changes
 ISR (PCINT2_vect) // handle pin change interrupt for D0 to D7 here
  {
      if(digitalRead(EMAX)){ // MAX hit

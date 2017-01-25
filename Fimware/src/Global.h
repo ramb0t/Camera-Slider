@@ -12,7 +12,8 @@
 #define HOUR_ITEM 0
 #define MIN_ITEM  1
 #define SEC_ITEM  2
-#define ITEMEND   3
+#define CAL_ITEM  4
+#define ITEMEND   4
 
 // Directions
 #define FORWARD   HIGH
@@ -51,6 +52,9 @@ extern volatile int status;
 extern byte hours;
 extern byte minutes;
 extern byte seconds;
+
+// Calibration Variables
+extern long calibration_steps;
 
 
 extern Adafruit_SSD1306 display;
