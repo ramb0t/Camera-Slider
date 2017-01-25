@@ -43,8 +43,33 @@ void OLED_Update() {
   int X;
   int Y;
 
+  if(running){ // Running page
+    // print first line:
+    X = 0; Y = 0;
+    // Time: H.M.S
+    display.setCursor(X,Y);
+    display.print("Running");
+
+    // print second line:
+    // H:M:S
+    X = 0; Y = 20;
+    display.setCursor(X,Y);
+    display.print(hours);
+    display.print(":");
+    display.print(minutes);
+    display.print(":");
+    display.print(seconds);
+
+    // print third line:
+    // Stop
+    X = 0; Y = 40;
+    display.drawRect(X,Y,55,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.print("STOP");
+
+  }// end running page
   // Time Page:
-  if(item == HOUR_ITEM || item == MIN_ITEM || item == SEC_ITEM || item == STARTITEM){
+  else if(item == HOUR_ITEM || item == MIN_ITEM || item == SEC_ITEM || item == STARTITEM){
     // print first line:
     X = 0; Y = 0;
     // Time: H.M.S
@@ -162,67 +187,6 @@ void OLED_Update() {
     display.print("Time ");
     display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
   } // end second page
-
-  // if(menuSelect == true && menu == SPEEDMENU){ // draw filled rect if selected
-  //   display.fillRect(74,0,35,16,WHITE);
-  //   display.setTextColor(BLACK);
-  //   display.println(actual_speed);
-  //   display.setTextColor(WHITE);
-  // }else if(menu == SPEEDMENU){ // draw rect if in correct menu
-  //   display.drawRect(74,0,35,16,WHITE);
-  //   display.println(actual_speed);
-  // }else{ // just draw speed
-  //   display.println(actual_speed);
-  // }
-  //
-  // // print second line:
-  // // Direction: <-->
-  // display.setCursor(0,21);
-  // display.print("Direction: ");
-  //
-  // if(menuSelect == true && menu == DIRMENU){ // draw filled rect if selected
-  //   display.fillRect(5,36,45,16,WHITE);
-  //   display.setTextColor(BLACK);
-  //   if(actual_direction == FORWARD) display.print("-->");
-  //   else display.print("<--");
-  //   display.setTextColor(WHITE);
-  // }else if(menu == DIRMENU){ // draw rect if in correct menu
-  //   display.drawRect(5,36,45,16,WHITE);
-  //   if(actual_direction == FORWARD) display.print("-->");
-  //   else display.print("<--");
-  // }else{ // just draw direction
-  //   if(actual_direction == FORWARD) display.print("-->");
-  //   else display.print("<--");
-  // }
-  //
-  // // print third line:
-  // // Start
-  // display.setCursor(60,40);
-  // if(running){ // draw filled rect if running
-  //   display.fillRect(59,39,61,17,WHITE);
-  //   display.setTextColor(BLACK);
-  //   display.print("Start");
-  //   display.setTextColor(WHITE);
-  // }else{
-  //   display.print("Start");
-  // }
-  // if(menu == STARTMENU){ // draw rect if in correct menu
-  //   display.drawRect(58,38,62,18,WHITE);
-  // }
-
-  // print second line:
-  // progress bar [#####         ]
-  // 15 speed steps: 0 - 5 - 10 - ... - 70
-//  lcd.setCursor(0,1);
-//  lcd.print("[");
-//
-//  for(int i = 1; i <= 14; i++) {
-//
-//    if(actual_speed > (5 * i) - 1) lcd.write(byte(0));
-//    else lcd.print(" ");
-//  }
-//
-//  lcd.print("]");
 
   //DEBUG code
   if(DEBUG_OLED){

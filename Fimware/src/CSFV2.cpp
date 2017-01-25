@@ -271,7 +271,7 @@ void loop() {
   }
 
   if(!itemSelect){// selecting item
-    item = item + encoder_result;
+    if(!running) item = item + encoder_result;
     // loop item around
     if(item > ITEMEND) item = 0;
     else if(item < 0) item = ITEMEND;
@@ -425,21 +425,13 @@ void calibrate(){
   display.print("Min Hit... ");
   display.display();
 
-  delay(2000);
+  delay(1000);
 
   // store steps counted
   calibration_steps = step_count;
   storage.c_steps = calibration_steps;
   saveConfig(); // save to EEPROM
-  display.clearDisplay();
-  display.setCursor(0,1);
-  display.print("Steps: ");
-  display.setCursor(0,21);
-  display.print(calibration_steps);
-  display.display();
   status = C_DONE;
-
-  delay(10000);
 }
 
 // read buttons connected to a single analog pin
