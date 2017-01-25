@@ -6,10 +6,13 @@
 // Global Defines
 /******************************************************************************/
 // Menu states
-#define SPEEDMENU 0
-#define DIRMENU   1
-#define STARTMENU 2
-#define MENUEND   2
+#define SPEEDITEM -1
+#define DIRITEM   -1
+#define STARTITEM 3
+#define HOUR_ITEM 0
+#define MIN_ITEM  1
+#define SEC_ITEM  2
+#define ITEMEND   3
 
 // Directions
 #define FORWARD   HIGH
@@ -40,9 +43,14 @@ extern bool DEBUG_SERIAL;
 extern bool DEBUG_OLED;
 
 //State Machine vars
-extern bool menuSelect;
-extern int menu;
+extern bool itemSelect;
+extern int item;
 extern volatile int status;
+
+//Time Variables
+extern byte hours;
+extern byte minutes;
+extern byte seconds;
 
 
 extern Adafruit_SSD1306 display;

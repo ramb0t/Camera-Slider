@@ -50,23 +50,72 @@ void OLED_Update() {
   display.print("Time:H.M.S");
 
   // print second line:
-  X = 0; Y = 20;
   // |x| |x| |x| |GO|
-  display.drawRect(X,Y,16,20,WHITE);
-  display.setCursor(X+3,Y+3);
-  display.print("0");
+  // Hours:
+  X = 0; Y = 20;
+  if(itemSelect && item == HOUR_ITEM){    //Selected > Draw Filled Rect
+    display.fillRect(X,Y,16,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.setTextColor(BLACK);
+    display.print(hours);
+    display.setTextColor(WHITE);
+  }else if(item == HOUR_ITEM){            //Hover    > Draw Rect
+    display.drawRect(X,Y,16,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.print(hours);
+  }else{                                  // Just Print Value
+    display.setCursor(X+3,Y+3);
+    display.print(hours);
+  }
+  // Minutes:
   X = X + 20;
-  display.drawRect(X,Y,28,20,WHITE);
-  display.setCursor(X+3,Y+3);
-  display.print("00");
+  if(itemSelect && item == MIN_ITEM){     //Selected > Draw Filled Rect
+    display.fillRect(X,Y,28,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.setTextColor(BLACK);
+    display.print(minutes);
+    display.setTextColor(WHITE);
+  }else if(item == MIN_ITEM){             //Hover    > Draw Rect
+    display.drawRect(X,Y,28,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.print(minutes);
+  }else{                                  // Just Print Value
+    display.setCursor(X+3,Y+3);
+    display.print(minutes);
+  }
+  // Seconds:
   X = X + 32;
-  display.drawRect(X,Y,28,20,WHITE);
-  display.setCursor(X+3,Y+3);
-  display.print("00");
+  if(itemSelect && item == SEC_ITEM){     //Selected > Draw Filled Rect
+    display.fillRect(X,Y,28,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.setTextColor(BLACK);
+    display.print(seconds);
+    display.setTextColor(WHITE);
+  }else if(item == SEC_ITEM){             //Hover    > Draw Rect
+    display.drawRect(X,Y,28,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.print(seconds);
+  }else{                                  // Just Print Value
+    display.setCursor(X+3,Y+3);
+    display.print(seconds);
+  }
+  // Go!:
   X = X + 34;
-  display.drawRect(X,Y,37,20,WHITE);
-  display.setCursor(X+3,Y+3);
-  display.print("GO!");
+  if(itemSelect && item == STARTITEM){    //Selected > Draw Filled Rect
+    display.fillRect(X,Y,37,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.setTextColor(BLACK);
+    display.print("GO!");
+    display.setTextColor(WHITE);
+  }else if(item == STARTITEM){            //Hover    > Draw Rect
+    display.drawRect(X,Y,37,20,WHITE);
+    display.setCursor(X+3,Y+3);
+    display.print("GO!");
+  }else{                                  // Just Print Value 
+    display.setCursor(X+3,Y+3);
+    display.print("GO!");
+  }
+
 
   // if(menuSelect == true && menu == SPEEDMENU){ // draw filled rect if selected
   //   display.fillRect(74,0,35,16,WHITE);

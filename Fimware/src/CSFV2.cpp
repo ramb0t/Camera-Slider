@@ -66,6 +66,8 @@
 #define STEP_DELAY  10
 #define CALIB_SPEED 20
 
+#define HOURS_MAX   3
+
 // Variable declarations
 /******************************************************************************/
 // debug enable
@@ -82,8 +84,8 @@ bool ledFlag;
 byte oldPos = 0;
 
 // State machine vars
-bool menuSelect = false;
-int menu = 0;
+bool itemSelect = false;
+int item = 0;
 volatile int status;
 
 // motor parameters
@@ -107,6 +109,11 @@ long calibration_steps;
 int ticker = 0;
 int encoder_result = 0;
 
+byte hours;
+byte minutes;
+byte seconds;
+int  totalRunTime;
+
 // Function prototypes
 /******************************************************************************/
 int read_buttons();
@@ -118,6 +125,12 @@ void change_direction(int new_direction);
 void emergency_stop();
 void updateLCD();
 void pciSetup(byte pin);
+void inc_hours();
+void dec_hours();
+void inc_mins();
+void dec_mins();
+void inc_secs();
+void dec_secs();
 
 // Functions
 /******************************************************************************/
@@ -174,6 +187,10 @@ void setup() {
   running = false;
   MAX_FLAG = false;
   MIN_FLAG = false;
+  hours = 0;
+  minutes = 0;
+  seconds = 10;
+  totalRunTime = 0;
 
   digitalWrite(SDIR, actual_direction);
 
@@ -214,32 +231,39 @@ void loop() {
     debounce = true;
   }
 
-  // switch menu selected active mode
+  // switch item selected active mode
   if(button != btnNONE){
-    if(menuSelect) menuSelect = false;
-    else{
-      menuSelect = true;
-      encoder_result = 0; // reset the encoder result
-    }
+    if(itemSelect) itemSelect = false; // deselect item
+    else           itemSelect = true;  // select item
+    encoder_result = 0; // reset the encoder result to prevent value jumps
   }
 
-  if(!menuSelect){// selecting menu
-    menu = menu + encoder_result;
-    // loop menu around
-    if(menu > MENUEND) menu = 0;
-    else if(menu < 0) menu = MENUEND;
+  if(!itemSelect){// selecting item
+    item = item + encoder_result;
+    // loop item around
+    if(item > ITEMEND) item = 0;
+    else if(item < 0) item = ITEMEND;
   }
-  else{ // in menu selected mode
-    if(menu == SPEEDMENU){ // in speed mode
+  else{ // in item selected mode
+    if(item == SPEEDITEM){ // in speed mode
       if(encoder_result == 1) increase_speed();
       else if(encoder_result == -1) decrease_speed();
-    }else if(menu == DIRMENU){ // in direction mode
+    }else if(item == DIRITEM){ // in direction mode
       if(encoder_result == 1) change_direction(FORWARD);
       else if(encoder_result == -1) change_direction(BACKWARD);
-    }else if(menu == STARTMENU){ // start your engines!
+    }else if(item == STARTITEM){ // start your engines!
       if(!running) running = true;
       else running = false;
-      menuSelect = false; // get out the menu
+      itemSelect = false; // get out the item
+    }else if(item == HOUR_ITEM){ // Adjust hours
+      if(encoder_result == 1)       inc_hours();
+      else if(encoder_result == -1) dec_hours();
+    }else if(item == MIN_ITEM){ // Adjust minutes
+      if(encoder_result == 1)       inc_mins();
+      else if(encoder_result == -1) dec_mins();
+    }else if(item == SEC_ITEM){ // Adjust seconds
+      if(encoder_result == 1)       inc_secs();
+      else if(encoder_result == -1) dec_secs();
     }
   }
 
@@ -435,7 +459,33 @@ void emergency_stop() {
 }
 
 
+// Time adjustments:
+void inc_hours(){
+  hours++;
+  if(hours > HOURS_MAX) hours = 0;
+}
+void dec_hours(){
+  if(hours > 0) hours--;
+  else hours = HOURS_MAX;
+}
 
+void inc_mins(){
+  minutes++;
+  if(minutes > 59){ minutes = 0; inc_hours(); }
+}
+void dec_mins(){
+  if(minutes > 0) minutes--;
+  else { minutes = 59; dec_hours(); }
+}
+
+void inc_secs(){
+  seconds++;
+  if(seconds > 59){ seconds = 0; inc_mins(); }
+}
+void dec_secs(){
+  if(seconds > 0) seconds--;
+  else { seconds = 59; dec_mins(); }
+}
 
 ISR (PCINT2_vect) // handle pin change interrupt for D0 to D7 here
  {
