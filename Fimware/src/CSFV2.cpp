@@ -181,7 +181,7 @@ void setup() {
   Serial.begin(115200);
   Serial.println("Debug Started:");
   status = C_UDEFF;
-  calibrate();
+  //calibrate();
   DEBUG_SERIAL = false;
 }
 

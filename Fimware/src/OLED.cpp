@@ -14,7 +14,7 @@ void OLED_Init(){
   //display.setFont(&FreeMono9pt7b);
 
   // text display tests
-  display.setTextSize(2); 
+  display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,12);
   display.println("Hello, world!");
@@ -39,56 +39,81 @@ void OLED_Update() {
   display.clearDisplay();
   display.setTextSize(2);
 
+  //Line Origin vars
+  int X;
+  int Y;
+
   // print first line:
-  // Speed: xxxRPM
-  display.setCursor(0,1);
-  display.print("Speed: ");
-  if(menuSelect == true && menu == SPEEDMENU){ // draw filled rect if selected
-    display.fillRect(74,0,35,16,WHITE);
-    display.setTextColor(BLACK);
-    display.println(actual_speed);
-    display.setTextColor(WHITE);
-  }else if(menu == SPEEDMENU){ // draw rect if in correct menu
-    display.drawRect(74,0,35,16,WHITE);
-    display.println(actual_speed);
-  }else{ // just draw speed
-    display.println(actual_speed);
-  }
+  X = 0; Y = 0;
+  // Time: H.M.S
+  display.setCursor(X,Y);
+  display.print("Time:H.M.S");
 
   // print second line:
-  // Direction: <-->
-  display.setCursor(0,21);
-  display.print("Direction: ");
+  X = 0; Y = 20;
+  // |x| |x| |x| |GO|
+  display.drawRect(X,Y,16,20,WHITE);
+  display.setCursor(X+3,Y+3);
+  display.print("0");
+  X = X + 20;
+  display.drawRect(X,Y,28,20,WHITE);
+  display.setCursor(X+3,Y+3);
+  display.print("00");
+  X = X + 32;
+  display.drawRect(X,Y,28,20,WHITE);
+  display.setCursor(X+3,Y+3);
+  display.print("00");
+  X = X + 34;
+  display.drawRect(X,Y,37,20,WHITE);
+  display.setCursor(X+3,Y+3);
+  display.print("GO!");
 
-  if(menuSelect == true && menu == DIRMENU){ // draw filled rect if selected
-    display.fillRect(5,36,45,16,WHITE);
-    display.setTextColor(BLACK);
-    if(actual_direction == FORWARD) display.print("-->");
-    else display.print("<--");
-    display.setTextColor(WHITE);
-  }else if(menu == DIRMENU){ // draw rect if in correct menu
-    display.drawRect(5,36,45,16,WHITE);
-    if(actual_direction == FORWARD) display.print("-->");
-    else display.print("<--");
-  }else{ // just draw direction
-    if(actual_direction == FORWARD) display.print("-->");
-    else display.print("<--");
-  }
-
-  // print third line:
-  // Start
-  display.setCursor(60,40);
-  if(running){ // draw filled rect if running
-    display.fillRect(59,39,61,17,WHITE);
-    display.setTextColor(BLACK);
-    display.print("Start");
-    display.setTextColor(WHITE);
-  }else{
-    display.print("Start");
-  }
-  if(menu == STARTMENU){ // draw rect if in correct menu
-    display.drawRect(58,38,62,18,WHITE);
-  }
+  // if(menuSelect == true && menu == SPEEDMENU){ // draw filled rect if selected
+  //   display.fillRect(74,0,35,16,WHITE);
+  //   display.setTextColor(BLACK);
+  //   display.println(actual_speed);
+  //   display.setTextColor(WHITE);
+  // }else if(menu == SPEEDMENU){ // draw rect if in correct menu
+  //   display.drawRect(74,0,35,16,WHITE);
+  //   display.println(actual_speed);
+  // }else{ // just draw speed
+  //   display.println(actual_speed);
+  // }
+  //
+  // // print second line:
+  // // Direction: <-->
+  // display.setCursor(0,21);
+  // display.print("Direction: ");
+  //
+  // if(menuSelect == true && menu == DIRMENU){ // draw filled rect if selected
+  //   display.fillRect(5,36,45,16,WHITE);
+  //   display.setTextColor(BLACK);
+  //   if(actual_direction == FORWARD) display.print("-->");
+  //   else display.print("<--");
+  //   display.setTextColor(WHITE);
+  // }else if(menu == DIRMENU){ // draw rect if in correct menu
+  //   display.drawRect(5,36,45,16,WHITE);
+  //   if(actual_direction == FORWARD) display.print("-->");
+  //   else display.print("<--");
+  // }else{ // just draw direction
+  //   if(actual_direction == FORWARD) display.print("-->");
+  //   else display.print("<--");
+  // }
+  //
+  // // print third line:
+  // // Start
+  // display.setCursor(60,40);
+  // if(running){ // draw filled rect if running
+  //   display.fillRect(59,39,61,17,WHITE);
+  //   display.setTextColor(BLACK);
+  //   display.print("Start");
+  //   display.setTextColor(WHITE);
+  // }else{
+  //   display.print("Start");
+  // }
+  // if(menu == STARTMENU){ // draw rect if in correct menu
+  //   display.drawRect(58,38,62,18,WHITE);
+  // }
 
   // print second line:
   // progress bar [#####         ]
