@@ -187,6 +187,42 @@ void OLED_Update() {
     display.print("Time ");
     display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
   } // end second page
+  else if(item == FRUN_ITEM){
+    // print first line:
+    display.setTextSize(2);
+    X = 0; Y = 0;
+    // |Calibrate|
+    if(itemSelect && item == CAL_ITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print("Free Run");
+      display.setTextColor(WHITE);
+    }else if(item == CAL_ITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print("Free Run");
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print("Free Run");
+    }
+
+    // // print second line:
+    // X = 0; Y = 22;
+    // // Steps:
+    // display.setCursor(X, Y);
+    // display.print("Stps:");
+    // display.print(calibration_steps);
+    //
+    // // print third line:
+    // // time
+    // X = 0; Y = 42;
+    // display.setCursor(X, Y);
+    // display.setTextSize(1);
+    // display.print("Time ");
+    // display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
+  } // end third page
+
 
   //DEBUG code
   if(DEBUG_OLED){

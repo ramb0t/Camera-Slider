@@ -40,6 +40,9 @@
 //interrupt period in uS
 #define INT_PERIOD  10
 
+// interrupts per second
+#define INTS_PSEC   1000000/INT_PERIOD
+
 // Calibration states
 #define C_UDEFF   0
 #define C_INIT    1
@@ -49,7 +52,6 @@
 #define C_GMIN    5
 #define C_FIN     6
 #define C_DONE    7
-
 
 // buttons code
 #define btnRIGHT  0
@@ -65,7 +67,7 @@
 #define tickerMax 125
 
 #define STEP_DELAY  10
-#define CALIB_SPEED 20
+#define CALIB_SPEED 15
 
 #define HOURS_MAX   3
 
@@ -116,10 +118,17 @@ long calibration_steps;
 int ticker = 0;
 int encoder_result = 0;
 
+// time variables
 byte hours;
 byte minutes;
 byte seconds;
-int  totalRunTime;
+int  totalRunSecs;
+long oldMillis;
+
+// step calc variables
+long steps_sec;
+long ints_step;
+long ints_step_count;
 
 // Structs
 /******************************************************************************/
@@ -145,6 +154,7 @@ struct StoreStruct {
 /******************************************************************************/
 int read_buttons();
 void calibrate();
+void init_run();
 void increase_speed();
 void decrease_speed();
 void set_speed(int speed);
@@ -222,7 +232,11 @@ void setup() {
   hours = 0;
   minutes = 0;
   seconds = 10;
-  totalRunTime = 0;
+  totalRunSecs = 0;
+  steps_sec = 0;
+  ints_step = 0;
+  ints_step_count = 0;
+
 
   digitalWrite(SDIR, actual_direction);
 
@@ -284,7 +298,7 @@ void loop() {
       if(encoder_result == 1) change_direction(FORWARD);
       else if(encoder_result == -1) change_direction(BACKWARD);
     }else if(item == STARTITEM){ // start your engines!
-      if(!running) running = true;
+      if(!running){ init_run(); running = true; }
       else running = false;
       itemSelect = false; // get out the item
     }else if(item == HOUR_ITEM){ // Adjust hours
@@ -299,9 +313,19 @@ void loop() {
     }else if(item == CAL_ITEM){ // Calibrate
       calibrate();
       itemSelect = false;
+    }else if(item == FRUN_ITEM){ // Free Run
+
+
     }
   }
 
+  // check seconds
+  if(running && (millis() - oldMillis) > 1000){
+    dec_secs();
+    if(hours == 0 && minutes == 0 && seconds == 0){ // end run
+      running = false;
+    }
+  }
 
   // finally update the OLED
   OLED_Update();
@@ -432,6 +456,80 @@ void calibrate(){
   storage.c_steps = calibration_steps;
   saveConfig(); // save to EEPROM
   status = C_DONE;
+}
+
+// inits the run based on time
+void init_run(){
+  // calculate ticks value for time
+  // Check that we are not on the endstops
+  change_direction(FORWARD);
+  while(digitalRead(EMIN)){
+    // make a step
+    digitalWrite(SSTP, HIGH);
+    digitalWrite(SSTP, LOW);
+    delay(STEP_DELAY);
+  }
+  change_direction(BACKWARD);
+  while(digitalRead(EMAX)){
+    // make a step
+    digitalWrite(SSTP, HIGH);
+    digitalWrite(SSTP, LOW);
+    delay(STEP_DELAY);
+  }
+
+  MIN_FLAG = false;
+  MAX_FLAG = false;
+
+  // move to min endstop first
+  change_direction(BACKWARD);
+  set_speed(CALIB_SPEED);
+  running = true;
+
+  while(!MIN_FLAG && !MAX_FLAG){
+    // wait
+  }
+  if(MAX_FLAG){
+    emergency_stop();
+    //TODO: error checking
+  }else{ // min endstop
+    running = false;
+  }
+  change_direction(FORWARD);
+  while(digitalRead(EMIN)){
+    // make a step
+    digitalWrite(SSTP, HIGH);
+    digitalWrite(SSTP, LOW);
+    delay(STEP_DELAY);
+  }
+
+  // reset flags
+  MAX_FLAG = false;
+  MIN_FLAG = false;
+
+  // calculate the timer ticks..
+  // Work out total seconds
+  totalRunSecs = hours*3600;
+  totalRunSecs += minutes*60;
+  totalRunSecs += seconds;
+  // work out steps / second using calibration steps
+  steps_sec = calibration_steps/totalRunSecs;
+  // work out num interrupt ticks per step
+  ints_step = INTS_PSEC/steps_sec;
+  if(DEBUG_SERIAL){
+    Serial.print("Total Secs: ");
+    Serial.println(totalRunSecs);
+    Serial.print("Calibration Steps: ");
+    Serial.println(calibration_steps);
+    Serial.print("Steps per Sec: ");
+    Serial.println(steps_sec);
+    Serial.print("Interrupts per Step: ");
+    Serial.println(ints_step);
+  }
+
+  oldMillis = millis();
+
+  // start run
+  //running = true;
 }
 
 // read buttons connected to a single analog pin

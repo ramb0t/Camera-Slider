@@ -13,6 +13,7 @@
 #define MIN_ITEM  1
 #define SEC_ITEM  2
 #define CAL_ITEM  4
+#define FRUN_ITEM 5
 #define ITEMEND   4
 
 // Directions
@@ -52,6 +53,11 @@ extern volatile int status;
 extern byte hours;
 extern byte minutes;
 extern byte seconds;
+
+// step calc variables
+extern long steps_sec;
+extern long ints_step;
+extern long ints_step_count;
 
 // Calibration Variables
 extern long calibration_steps;

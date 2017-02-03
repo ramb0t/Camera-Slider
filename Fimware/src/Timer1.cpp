@@ -32,13 +32,27 @@ void timerIsr() {
   }
 
   //Don't even bother
-  if(actual_speed == 0) return;
+  //if(actual_speed == 0) return;
 
   // inc the step counter
   tick_count++;
+  ints_step_count ++;
 
   // if we have hit the limit and we should be running
-  if((tick_count >= ticks) && running) {
+  // if((tick_count >= ticks) && running) {
+  //
+  //   // make a step
+  //   digitalWrite(SSTP, HIGH);
+  //   digitalWrite(SSTP, LOW);
+  //
+  //   // inc the step_counter
+  //   step_count++;
+  //
+  //   // reset tick counter
+  //   tick_count = 0;
+  // }
+
+  if((ints_step_count >= ints_step) && running) {
 
     // make a step
     digitalWrite(SSTP, HIGH);
@@ -48,6 +62,6 @@ void timerIsr() {
     step_count++;
 
     // reset tick counter
-    tick_count = 0;
+    ints_step_count = 0;
   }
 }
