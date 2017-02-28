@@ -171,13 +171,27 @@ void dec_secs();
 void loadConfig();
 void saveConfig();
 
+//Static Functions
+/******************************************************************************/
+static inline void Debug(string s){
+    Serial.println(s);
+}
+
 // Functions
 /******************************************************************************/
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+
+  DEBUG_TICKS = 50000;
+  Serial.begin(115200);
+  Serial.println("Debug Started:");
+  status = C_UDEFF;
+  //calibrate();
   DEBUG_SERIAL = true;
   DEBUG_OLED   = true;
+
+  Debug("Setting up IO... ");
   // initialize LEDS
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
@@ -209,17 +223,16 @@ void setup() {
   digitalWrite(LEDB, LOW);
   dirFlag = false;
 
+  Debug("Getting vals from EEPROM... ");
   // Load vals from EEPROM
   loadConfig();
   calibration_steps = storage.c_steps;
 
+  Debug("Setting up OLED... ");
   // OLED Display setup
   OLED_Init();
 
-  // Timer stuffs http://www.lucadentella.it/en/2013/05/30/allegro-a4988-e-arduino-3/
-  Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
-  Timer1.attachInterrupt(timerIsr); // attach isr function
-
+  Debug("Init Vars... ");
    // initial values
   actual_speed = 0;
   actual_direction = FORWARD;
@@ -240,12 +253,11 @@ void setup() {
 
   digitalWrite(SDIR, actual_direction);
 
-  DEBUG_TICKS = 500000;
-  Serial.begin(115200);
-  Serial.println("Debug Started:");
-  status = C_UDEFF;
-  //calibrate();
-  DEBUG_SERIAL = true;
+  Debug("Activate Timer1 ISR... ");
+  // Timer stuffs http://www.lucadentella.it/en/2013/05/30/allegro-a4988-e-arduino-3/
+  Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
+  Timer1.attachInterrupt(timerIsr); // attach isr function
+
 }
 
 // Install Pin change interrupt for a pin, can be called multiple times

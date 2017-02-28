@@ -17,8 +17,8 @@ void OLED_Init(){
   display.setTextSize(2);
   display.setTextColor(WHITE);
   display.setCursor(0,12);
-  display.println("Hello, world!");
-  display.display();
+  //display.println("Hello, world!");
+  //display.display();
 
   // Show image buffer on the display hardware.
   // Since the buffer is intialized with an Adafruit splashscreen
