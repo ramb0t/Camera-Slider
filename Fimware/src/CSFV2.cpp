@@ -103,7 +103,6 @@ volatile int actual_direction;
 
 // interrupt vars
 volatile int ticks;
-volatile unsigned long DEBUG_TICKS;
 volatile bool running = false;
 
 int button;
@@ -171,27 +170,25 @@ void dec_secs();
 void loadConfig();
 void saveConfig();
 
-//Static Functions
-/******************************************************************************/
-static inline void Debug(string s){
-    Serial.println(s);
-}
-
 // Functions
 /******************************************************************************/
 
 // the setup function runs once when you press reset or power the board
 void setup() {
 
-  DEBUG_TICKS = 50000;
-  Serial.begin(115200);
-  Serial.println("Debug Started:");
+  #ifdef DEBUG
+    Serial.begin(115200);
+    DEBUG_SERIAL = true;
+    DEBUG_OLED   = true;
+  #else
+  DEBUG_SERIAL = false;
+  DEBUG_OLED   = false;
+  #endif
+  DEBUG_PRINT("Debug Started:");
   status = C_UDEFF;
   //calibrate();
-  DEBUG_SERIAL = true;
-  DEBUG_OLED   = true;
 
-  Debug("Setting up IO... ");
+  DEBUG_PRINT("Setting up IO... ");
   // initialize LEDS
   pinMode(LEDR, OUTPUT);
   pinMode(LEDG, OUTPUT);
@@ -223,16 +220,16 @@ void setup() {
   digitalWrite(LEDB, LOW);
   dirFlag = false;
 
-  Debug("Getting vals from EEPROM... ");
+  DEBUG_PRINT("Getting vals from EEPROM... ");
   // Load vals from EEPROM
   loadConfig();
   calibration_steps = storage.c_steps;
 
-  Debug("Setting up OLED... ");
+  DEBUG_PRINT("Setting up OLED... ");
   // OLED Display setup
   OLED_Init();
 
-  Debug("Init Vars... ");
+  DEBUG_PRINT("Init Vars... ");
    // initial values
   actual_speed = 0;
   actual_direction = FORWARD;
@@ -253,7 +250,7 @@ void setup() {
 
   digitalWrite(SDIR, actual_direction);
 
-  Debug("Activate Timer1 ISR... ");
+  DEBUG_PRINT("Activate Timer1 ISR... ");
   // Timer stuffs http://www.lucadentella.it/en/2013/05/30/allegro-a4988-e-arduino-3/
   Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
   Timer1.attachInterrupt(timerIsr); // attach isr function
@@ -383,7 +380,7 @@ void calibrate(){
   }
   if(MAX_FLAG){
     emergency_stop();
-    Serial.println("Error hit Max");
+    DEBUG_PRINT("Error hit Max");
     //TODO: error checking
   }else{ // min endstop
     running = false;
@@ -412,7 +409,7 @@ void calibrate(){
   }
   if(MIN_FLAG){
     emergency_stop();
-    Serial.println("Error hit Min");
+    DEBUG_PRINT("Error hit Min");
     //TODO: error checking
   }else{ // min endstop
     running = false;
@@ -448,7 +445,7 @@ void calibrate(){
   }
   if(MAX_FLAG){
     emergency_stop();
-    Serial.println("Error hit Max");
+    DEBUG_PRINT("Error hit Max");
     //TODO: error checking
   }else{ // min endstop
     running = false;
@@ -527,7 +524,9 @@ void init_run(){
   steps_sec = calibration_steps/totalRunSecs;
   // work out num interrupt ticks per step
   ints_step = INTS_PSEC/steps_sec;
-  if(DEBUG_SERIAL){
+
+  //debug
+  #ifdef DEBUG
     Serial.print("Total Secs: ");
     Serial.println(totalRunSecs);
     Serial.print("Calibration Steps: ");
@@ -536,7 +535,7 @@ void init_run(){
     Serial.println(steps_sec);
     Serial.print("Interrupts per Step: ");
     Serial.println(ints_step);
-  }
+  #endif
 
   oldMillis = millis();
 

@@ -5,6 +5,14 @@
 
 // Global Defines
 /******************************************************************************/
+#define DEBUG
+#define DEBUG_TICKS 50000
+#ifdef DEBUG
+ #define DEBUG_PRINT(x)  Serial.println (x)
+#else
+ #define DEBUG_PRINT(x)
+#endif
+
 // Menu states
 #define SPEEDITEM -1
 #define DIRITEM   -1
@@ -29,7 +37,6 @@ extern volatile long step_count;
 extern volatile int actual_speed;
 extern volatile int ticks;
 extern volatile unsigned int tick_count;
-extern volatile unsigned long DEBUG_TICKS;
 extern volatile bool running;
 extern volatile bool MAX_FLAG;
 extern volatile bool MIN_FLAG;
