@@ -178,8 +178,8 @@ void setup() {
 
   #ifdef DEBUG
     Serial.begin(115200);
-    DEBUG_SERIAL = true;
-    DEBUG_OLED   = true;
+    DEBUG_SERIAL = false;
+    DEBUG_OLED   = false;
   #else
   DEBUG_SERIAL = false;
   DEBUG_OLED   = false;
@@ -252,8 +252,8 @@ void setup() {
 
   DEBUG_PRINT("Activate Timer1 ISR... ");
   // Timer stuffs http://www.lucadentella.it/en/2013/05/30/allegro-a4988-e-arduino-3/
-  Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
-  Timer1.attachInterrupt(timerIsr); // attach isr function
+  //Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
+  //Timer1.attachInterrupt(timerIsr); // attach isr function
 
 }
 

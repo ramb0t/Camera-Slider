@@ -5,7 +5,7 @@
 
 // Global Defines
 /******************************************************************************/
-#define DEBUG
+//#define DEBUG
 #define DEBUG_TICKS 50000
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.println (x)
