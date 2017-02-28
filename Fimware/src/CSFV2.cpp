@@ -7,7 +7,7 @@
 #include <TimerOne.h>
 // #include <SPI.h>
 // #include <Wire.h>
-// #include <Adafruit_GFX.h>
+#include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 // #include <Fonts/FreeMono9pt7b.h>
 #include <EEPROM.h>
@@ -240,12 +240,12 @@ void setup() {
 
   digitalWrite(SDIR, actual_direction);
 
-  DEBUG_TICKS = 50000;
+  DEBUG_TICKS = 500000;
   Serial.begin(115200);
   Serial.println("Debug Started:");
   status = C_UDEFF;
   //calibrate();
-  DEBUG_SERIAL = false;
+  DEBUG_SERIAL = true;
 }
 
 // Install Pin change interrupt for a pin, can be called multiple times
