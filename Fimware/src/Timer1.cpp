@@ -37,7 +37,7 @@ void timerIsr() {
 
   // inc the step counter
   tick_count++;
-  ints_step_count ++;
+  ints_step_count ++; // counts the ints for the next step
 
   // if we have hit the limit and we should be running
   // if((tick_count >= ticks) && running) {
@@ -59,10 +59,10 @@ void timerIsr() {
     digitalWrite(SSTP, HIGH);
     digitalWrite(SSTP, LOW);
 
-    // inc the step_counter
+    // inc the step_counter, so we know where we are
     step_count++;
 
-    // reset tick counter
+    // reset int counter
     ints_step_count = 0;
   }
 }

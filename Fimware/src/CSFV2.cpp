@@ -66,8 +66,9 @@
 
 #define tickerMax 125
 
-#define STEP_DELAY  30
-#define CALIB_SPEED 5
+#define STEP_DELAY  15
+#define CALIB_SPEED INTS_PSEC/50  //Ints per second / steps per second 
+//#define CALIB_SPEED 5
 
 #define HOURS_MAX   3
 
@@ -268,6 +269,7 @@ void pciSetup(byte pin)
 // the loop function runs over and over again forever
 void loop() {
 
+  //TODO move this code out
   // calculate the current encoder move
   if(encoderPos - oldPos >0) encoder_result = 1;
   else if(encoderPos - oldPos <0) encoder_result = -1;
@@ -493,7 +495,8 @@ void init_run(){
 
   // move to min endstop first
   change_direction(BACKWARD);
-  set_speed(CALIB_SPEED);
+  //set_speed(CALIB_SPEED);
+  ints_step = CALIB_SPEED;
   running = true;
 
   while(!MIN_FLAG && !MAX_FLAG){
@@ -524,7 +527,7 @@ void init_run(){
   totalRunSecs += seconds;
   // work out steps / second using calibration steps
   steps_sec = calibration_steps/totalRunSecs;
-  // work out num interrupt ticks per step
+  // work out num interrupt ticks per step (SPEED)
   ints_step = INTS_PSEC/steps_sec;
 
   //debug
