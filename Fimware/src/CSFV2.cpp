@@ -66,8 +66,8 @@
 
 #define tickerMax 125
 
-#define STEP_DELAY  10
-#define CALIB_SPEED 15
+#define STEP_DELAY  30
+#define CALIB_SPEED 5
 
 #define HOURS_MAX   3
 
@@ -252,8 +252,8 @@ void setup() {
 
   DEBUG_PRINT("Activate Timer1 ISR... ");
   // Timer stuffs http://www.lucadentella.it/en/2013/05/30/allegro-a4988-e-arduino-3/
-  //Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
-  //Timer1.attachInterrupt(timerIsr); // attach isr function
+  Timer1.initialize(INT_PERIOD); // setup for 10uS interrupts
+  Timer1.attachInterrupt(timerIsr); // attach isr function
 
 }
 
@@ -330,9 +330,11 @@ void loop() {
 
   // check seconds
   if(running && (millis() - oldMillis) > 1000){
+    oldMillis = millis();
     dec_secs();
     if(hours == 0 && minutes == 0 && seconds == 0){ // end run
       running = false;
+      seconds = 10;
     }
   }
 
@@ -540,11 +542,12 @@ void init_run(){
   oldMillis = millis();
 
   // start run
-  //running = true;
+  running = true;
 }
 
 // read buttons connected to a single analog pin
 int read_buttons() {
+
  if(digitalRead(ENCS) == 1) return btnNONE;
  else return btnSELECT;
 }
@@ -590,6 +593,7 @@ void change_direction(int new_direction) {
 
 // emergency stop: speed 0
 void emergency_stop() {
+
   actual_speed = 0;
   tick_count = 0;
   ticks = speed_ticks[actual_speed / 5];
