@@ -26,7 +26,7 @@
 
 // Since microstepping is set externally, make sure this matches the selected mode
 // 1=full step, 2=half step etc.
-#define MICROSTEPS 1
+#define MICROSTEPS 16
 
 // steps / rev
 #define STEPS_REV MOTOR_STEPS * MICROSTEPS
@@ -66,8 +66,9 @@
 
 #define tickerMax 125
 
-#define STEP_DELAY  15
-#define CALIB_SPEED INTS_PSEC/50  //Ints per second / steps per second 
+#define STEP_DELAY  16/MICROSTEPS
+#define CALIB_STEPS_SEC 0.75*STEPS_REV // Requested RPS * Steps per Rev
+#define CALIB_SPEED INTS_PSEC/(700*MICROSTEPS)  //Ints per second / steps per second
 //#define CALIB_SPEED 5
 
 #define HOURS_MAX   3
@@ -375,7 +376,8 @@ void calibrate(){
 
   // move to min endstop first
   change_direction(BACKWARD);
-  set_speed(CALIB_SPEED);
+  //set_speed(CALIB_SPEED);
+  ints_step = CALIB_SPEED;
   running = true;
   status = C_INIT;
 
@@ -404,7 +406,8 @@ void calibrate(){
 
   // move to max Endstop
   change_direction(FORWARD);
-  set_speed(CALIB_SPEED);
+  //set_speed(CALIB_SPEED);
+  ints_step = CALIB_SPEED;
   running = true;
   status = C_GMAX;
 
@@ -441,7 +444,8 @@ void calibrate(){
 
   // move to minimum Endstop
   change_direction(BACKWARD);
-  set_speed(CALIB_SPEED);
+  //set_speed(CALIB_SPEED);
+  ints_step = CALIB_SPEED;
   running = true;
 
   while(!MIN_FLAG && !MAX_FLAG){
@@ -466,6 +470,7 @@ void calibrate(){
 
   // store steps counted
   calibration_steps = step_count;
+  calibration_steps = calibration_steps/MICROSTEPS; // take out the MICROSTEPS factor
   storage.c_steps = calibration_steps;
   saveConfig(); // save to EEPROM
   status = C_DONE;
@@ -527,6 +532,7 @@ void init_run(){
   totalRunSecs += seconds;
   // work out steps / second using calibration steps
   steps_sec = calibration_steps/totalRunSecs;
+  steps_sec = steps_sec * MICROSTEPS;
   // work out num interrupt ticks per step (SPEED)
   ints_step = INTS_PSEC/steps_sec;
 
