@@ -62,7 +62,7 @@
 #define btnNONE   5
 
 // debounce time (milliseconds)
-#define DEBOUNCE_TIME 200
+#define DEBOUNCE_TIME 150
 
 #define tickerMax 125
 
@@ -156,6 +156,9 @@ struct StoreStruct {
 int read_buttons();
 void calibrate();
 void init_run();
+void home_min();
+void disable_motor();
+void enable_motor();
 void increase_speed();
 void decrease_speed();
 void set_speed(int speed);
@@ -552,6 +555,44 @@ void init_run(){
 
   // start run
   running = true;
+}
+
+// Home to the min Endstop
+void home_min(){
+  // move to min endstop first
+  change_direction(BACKWARD);
+  ints_step = CALIB_SPEED;
+  running = true;
+
+  while(!MIN_FLAG && !MAX_FLAG){
+    // wait
+  }
+  if(MAX_FLAG){
+    emergency_stop();
+    //TODO: error checking
+  }else{ // min endstop
+    running = false;
+  }
+
+  change_direction(FORWARD);
+  running = true;
+  while(digitalRead(EMIN)){
+    //wait...
+  }
+  running = false;
+
+  // reset flags
+  MAX_FLAG = false;
+  MIN_FLAG = false;
+
+}
+
+void disable_motor(){
+  digitalWrite(SEN, HIGH); // motor off
+}
+
+void enable_motor(){
+  digitalWrite(SEN, LOW); // motor on
 }
 
 // read buttons connected to a single analog pin
