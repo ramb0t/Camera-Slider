@@ -156,7 +156,9 @@ struct StoreStruct {
 int read_buttons();
 void calibrate();
 void init_run();
+void end_run();
 void home_min();
+void home_max();
 void disable_motor();
 void enable_motor();
 void increase_speed();
@@ -219,7 +221,7 @@ void setup() {
   pinMode(SSTP, OUTPUT);
   pinMode(SEN, OUTPUT);
 
-  digitalWrite(SEN, LOW); // motor on
+  digitalWrite(SEN, HIGH); // motor off
   digitalWrite(SDIR, LOW);
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDB, LOW);
@@ -334,13 +336,12 @@ void loop() {
     }
   }
 
-  // check seconds
+  // check seconds when running
   if(running && (millis() - oldMillis) > 1000){
     oldMillis = millis();
     dec_secs();
     if(hours == 0 && minutes == 0 && seconds == 0){ // end run
-      running = false;
-      seconds = 10;
+      end_run();
     }
   }
 
@@ -350,6 +351,7 @@ void loop() {
 
 //calibrate the extents
 void calibrate(){
+  enable_motor();
   // Tell the user what we are doing
   display.clearDisplay();
   display.setTextSize(1);
@@ -477,56 +479,14 @@ void calibrate(){
   storage.c_steps = calibration_steps;
   saveConfig(); // save to EEPROM
   status = C_DONE;
+  disable_motor();
 }
 
 // inits the run based on time
 void init_run(){
-  // calculate ticks value for time
-  // Check that we are not on the endstops
-  change_direction(FORWARD);
-  while(digitalRead(EMIN)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-  change_direction(BACKWARD);
-  while(digitalRead(EMAX)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-
-  MIN_FLAG = false;
-  MAX_FLAG = false;
-
+  enable_motor();
   // move to min endstop first
-  change_direction(BACKWARD);
-  //set_speed(CALIB_SPEED);
-  ints_step = CALIB_SPEED;
-  running = true;
-
-  while(!MIN_FLAG && !MAX_FLAG){
-    // wait
-  }
-  if(MAX_FLAG){
-    emergency_stop();
-    //TODO: error checking
-  }else{ // min endstop
-    running = false;
-  }
-  change_direction(FORWARD);
-  while(digitalRead(EMIN)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-
-  // reset flags
-  MAX_FLAG = false;
-  MIN_FLAG = false;
+  home_min();
 
   // calculate the timer ticks..
   // Work out total seconds
@@ -557,6 +517,18 @@ void init_run(){
   running = true;
 }
 
+
+// reinit the slider at the end of a run
+void end_run(){
+  // go to the min endstop
+  home_min();
+
+  running = false;
+  seconds = 10;
+  item = STARTITEM; // default screen
+  disable_motor();
+}
+
 // Home to the min Endstop
 void home_min(){
   // move to min endstop first
@@ -577,6 +549,36 @@ void home_min(){
   change_direction(FORWARD);
   running = true;
   while(digitalRead(EMIN)){
+    //wait...
+  }
+  running = false;
+
+  // reset flags
+  MAX_FLAG = false;
+  MIN_FLAG = false;
+
+}
+
+// Home to the max Endstop
+void home_max(){
+  // move to min endstop first
+  change_direction(FORWARD);
+  ints_step = CALIB_SPEED;
+  running = true;
+
+  while(!MIN_FLAG && !MAX_FLAG){
+    // wait
+  }
+  if(MIN_FLAG){
+    emergency_stop();
+    //TODO: error checking
+  }else{ // max endstop
+    running = false;
+  }
+
+  change_direction(BACKWARD);
+  running = true;
+  while(digitalRead(EMAX)){
     //wait...
   }
   running = false;
