@@ -68,8 +68,9 @@
 
 #define STEP_DELAY  16/MICROSTEPS
 #define CALIB_STEPS_SEC 0.75*STEPS_REV // Requested RPS * Steps per Rev
-#define CALIB_SPEED INTS_PSEC/(700*MICROSTEPS)  //Ints per second / steps per second
-//#define CALIB_SPEED 5
+#define CALIB_SPEED INTS_PSEC/(200*MICROSTEPS)  //Ints per second / steps per second
+
+#define HOME_SPEED INTS_PSEC/(800*MICROSTEPS)
 
 #define HOURS_MAX   3
 
@@ -351,7 +352,8 @@ void loop() {
 
 //calibrate the extents
 void calibrate(){
-  enable_motor();
+  status = C_INIT;
+
   // Tell the user what we are doing
   display.clearDisplay();
   display.setTextSize(1);
@@ -360,116 +362,41 @@ void calibrate(){
   display.setTextSize(2);
   display.display();
 
-  // Check that we are not on the endstops
-  change_direction(FORWARD);
-  while(digitalRead(EMIN)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-  change_direction(BACKWARD);
-  while(digitalRead(EMAX)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-
-  MIN_FLAG = false;
-  MAX_FLAG = false;
-
-  // move to min endstop first
-  change_direction(BACKWARD);
-  //set_speed(CALIB_SPEED);
-  ints_step = CALIB_SPEED;
-  running = true;
-  status = C_INIT;
-
-  while(!MIN_FLAG && !MAX_FLAG){
-    // wait
-  }
-  if(MAX_FLAG){
-    emergency_stop();
-    DEBUG_PRINT("Error hit Max");
-    //TODO: error checking
-  }else{ // min endstop
-    running = false;
-  }
+  enable_motor();
+  //Home min first
   status = C_HMIN;
-  change_direction(FORWARD);
-  while(digitalRead(EMIN)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
+  home_min();
 
-  // reset flags
-  MAX_FLAG = false;
-  MIN_FLAG = false;
-
-  // move to max Endstop
-  change_direction(FORWARD);
-  //set_speed(CALIB_SPEED);
-  ints_step = CALIB_SPEED;
-  running = true;
+  // Do the Calibrating
   status = C_GMAX;
+  // reset step counter
+  step_count = 0;
+  // set speed
+  ints_step = CALIB_SPEED;
+  // set direction
+  change_direction(FORWARD);
+  running = true;
 
+  // wait to hit an endstop
   while(!MIN_FLAG && !MAX_FLAG){
     // wait
   }
   if(MIN_FLAG){
-    emergency_stop();
+    //emergency_stop();
     DEBUG_PRINT("Error hit Min");
     //TODO: error checking
   }else{ // min endstop
     running = false;
   }
+
+  // hit the max
   status = C_HMAX;
   display.setCursor(0,21);
   display.print("Max Hit... ");
   display.display();
-  // endstop retract:
-  change_direction(BACKWARD);
-  while(digitalRead(EMAX)){
-    // make a step
-    digitalWrite(SSTP, HIGH);
-    digitalWrite(SSTP, LOW);
-    delay(STEP_DELAY);
-  }
-
-  MAX_FLAG = false;
-  MIN_FLAG = false;
-  status = C_GMIN;
 
 
-  // reset step counter
-  step_count = 0;
-
-  // move to minimum Endstop
-  change_direction(BACKWARD);
-  //set_speed(CALIB_SPEED);
-  ints_step = CALIB_SPEED;
-  running = true;
-
-  while(!MIN_FLAG && !MAX_FLAG){
-    // wait
-  }
-  if(MAX_FLAG){
-    emergency_stop();
-    DEBUG_PRINT("Error hit Max");
-    //TODO: error checking
-  }else{ // min endstop
-    running = false;
-  }
-  MAX_FLAG = false;
-  MIN_FLAG = false;
-  change_direction(FORWARD);
   status = C_FIN;
-  display.setCursor(0,41);
-  display.print("Min Hit... ");
-  display.display();
 
   delay(1000);
 
@@ -478,6 +405,12 @@ void calibrate(){
   calibration_steps = calibration_steps/MICROSTEPS; // take out the MICROSTEPS factor
   storage.c_steps = calibration_steps;
   saveConfig(); // save to EEPROM
+
+  //home min again
+  status = C_GMIN;
+  home_min();
+
+  // Finally done!
   status = C_DONE;
   disable_motor();
 }
@@ -538,7 +471,7 @@ void home_min(){
 
   // move to min endstop first
   change_direction(BACKWARD);
-  ints_step = CALIB_SPEED;
+  ints_step = HOME_SPEED;
   running = true;
 
   while(!MIN_FLAG){
@@ -566,20 +499,24 @@ void home_min(){
 
 // Home to the max Endstop
 void home_max(){
+  // reset flags
+  MAX_FLAG = false;
+  MIN_FLAG = false;
+
   // move to min endstop first
   change_direction(FORWARD);
-  ints_step = CALIB_SPEED;
+  ints_step = HOME_SPEED;
   running = true;
 
-  while(!MIN_FLAG && !MAX_FLAG){
+  while(!MAX_FLAG){
     // wait
+    if(MIN_FLAG){
+      //TODO: error checking
+    }
   }
-  if(MIN_FLAG){
-    emergency_stop();
-    //TODO: error checking
-  }else{ // max endstop
-    running = false;
-  }
+
+  // min endstop
+  running = false;
 
   change_direction(BACKWARD);
   running = true;
@@ -591,7 +528,6 @@ void home_max(){
   // reset flags
   MAX_FLAG = false;
   MIN_FLAG = false;
-
 }
 
 void disable_motor(){
