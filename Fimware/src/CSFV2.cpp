@@ -68,7 +68,7 @@
 
 #define STEP_DELAY  16/MICROSTEPS
 #define CALIB_STEPS_SEC 0.75*STEPS_REV // Requested RPS * Steps per Rev
-#define CALIB_SPEED INTS_PSEC/(200*MICROSTEPS)  //Ints per second / steps per second
+#define CALIB_SPEED INTS_PSEC/(100*MICROSTEPS)  //Ints per second / steps per second
 
 #define HOME_SPEED INTS_PSEC/(800*MICROSTEPS)
 
@@ -367,6 +367,10 @@ void calibrate(){
   status = C_HMIN;
   home_min();
 
+  display.setCursor(0,21);
+  display.print("Home Min..");
+  display.display();
+
   // Do the Calibrating
   status = C_GMAX;
   // reset step counter
@@ -376,6 +380,9 @@ void calibrate(){
   // set direction
   change_direction(FORWARD);
   running = true;
+  //reset the flags
+  MIN_FLAG = false;
+  MAX_FLAG = false;
 
   // wait to hit an endstop
   while(!MIN_FLAG && !MAX_FLAG){
@@ -391,7 +398,7 @@ void calibrate(){
 
   // hit the max
   status = C_HMAX;
-  display.setCursor(0,21);
+  display.setCursor(0,41);
   display.print("Max Hit... ");
   display.display();
 
