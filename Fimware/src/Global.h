@@ -47,9 +47,12 @@ extern volatile int actual_direction;
 extern volatile byte encoderPos;
 extern volatile byte oldEncPos;
 
-//Debug flags
-extern bool DEBUG_SERIAL;
-extern bool DEBUG_OLED;
+//Debug Vars
+#ifdef DEBUG
+  extern bool DEBUG_SERIAL;
+  extern bool DEBUG_OLED;
+  extern volatile unsigned long debug_ticker;
+#endif
 
 //State Machine vars
 extern bool itemSelect;

@@ -154,7 +154,8 @@ struct StoreStruct {
 
 // Function prototypes
 /******************************************************************************/
-int read_buttons();
+void read_buttons();
+void check_encoder();
 void calibrate();
 void init_run();
 void end_run();
@@ -162,8 +163,6 @@ void home_min();
 void home_max();
 void disable_motor();
 void enable_motor();
-void increase_speed();
-void decrease_speed();
 void set_speed(int speed);
 void change_direction(int new_direction);
 void emergency_stop();
@@ -276,31 +275,11 @@ void pciSetup(byte pin)
 // the loop function runs over and over again forever
 void loop() {
 
-  //TODO move this code out
   // calculate the current encoder move
-  if(encoderPos - oldPos >0) encoder_result = 1;
-  else if(encoderPos - oldPos <0) encoder_result = -1;
-  else encoder_result = 0;
-  oldPos = encoderPos;  // reset the relative pos value
+  check_encoder();
 
-  // check if debounce active
-  if(debounce) {
-    button = btnNONE;
-    if(millis() > previous_time + DEBOUNCE_TIME) debounce = false;
-  } else button = read_buttons();
-
-  // if a button is pressed, start debounce time
-  if(button != btnNONE) {
-    previous_time = millis();
-    debounce = true;
-  }
-
-  // switch item selected active mode
-  if(button != btnNONE){
-    if(itemSelect) itemSelect = false; // deselect item
-    else           itemSelect = true;  // select item
-    encoder_result = 0; // reset the encoder result to prevent value jumps
-  }
+  // Check if the button has been pressed, debounce etc.
+  read_buttons();
 
   if(!itemSelect){// selecting item
     if(!running) item = item + encoder_result;
@@ -310,14 +289,14 @@ void loop() {
   }
   else{ // in item selected mode
     if(item == SPEEDITEM){ // in speed mode
-      if(encoder_result == 1) increase_speed();
-      else if(encoder_result == -1) decrease_speed();
+      //if(encoder_result == 1) increase_speed();
+      //else if(encoder_result == -1) decrease_speed();
     }else if(item == DIRITEM){ // in direction mode
       if(encoder_result == 1) change_direction(FORWARD);
       else if(encoder_result == -1) change_direction(BACKWARD);
     }else if(item == STARTITEM){ // start your engines!
       if(!running){ init_run(); }
-      else running = false;
+      else emergency_stop();
       itemSelect = false; // get out the item
     }else if(item == HOUR_ITEM){ // Adjust hours
       if(encoder_result == 1)       inc_hours();
@@ -333,7 +312,6 @@ void loop() {
       itemSelect = false;
     }else if(item == FRUN_ITEM){ // Free Run
 
-
     }
   }
 
@@ -345,6 +323,28 @@ void loop() {
       end_run();
     }
   }
+
+  // Debug OUTPUT
+  #ifdef DEBUG
+    if(debug_ticker >= DEBUG_TICKS){
+      debug_ticker = 0; //reset the ticker
+      Serial.print("DEBUG: ");
+      Serial.print("Time ");
+      Serial.print(millis());
+      Serial.print("Run ");
+      Serial.print(running);
+      Serial.print(", Spd ");
+      Serial.print(ints_step);
+      Serial.print(", Dir ");
+      Serial.print(actual_direction);
+      Serial.print(", MaxF ");
+      Serial.print(MAX_FLAG);
+      Serial.print(", MinF ");
+      Serial.print(MIN_FLAG);
+      Serial.print(", Stat ");
+      Serial.println(status);
+    }
+  #endif
 
   // finally update the OLED
   OLED_Update();
@@ -545,31 +545,36 @@ void enable_motor(){
   digitalWrite(SEN, LOW); // motor on
 }
 
-// read buttons connected to a single analog pin
-int read_buttons() {
+// read buttons and debounce
+void read_buttons() {
+  // check if debounce active
+  if(debounce) {
+    button = btnNONE;
+    if(millis() > previous_time + DEBOUNCE_TIME) debounce = false;
+  }
+  else if(digitalRead(ENCS) == 1) button = btnNONE;
+  else button = btnSELECT;
 
- if(digitalRead(ENCS) == 1) return btnNONE;
- else return btnSELECT;
-}
+  // if a button is pressed, start debounce time
+  if(button != btnNONE) {
+    previous_time = millis();
+    debounce = true;
+  }
 
-// increase speed if it's below the max (70)
-void increase_speed() {
-
-  if(actual_speed < MAX_SPEED) {
-    actual_speed += 5;
-    tick_count = 0;
-    ticks = speed_ticks[actual_speed / 5];
+  // switch item selected active mode
+  if(button != btnNONE){
+    if(itemSelect) itemSelect = false; // deselect item
+    else           itemSelect = true;  // select item
+    encoder_result = 0; // reset the encoder result to prevent value jumps
   }
 }
 
-// decrease speed if it's above the min (0)
-void decrease_speed() {
-
-  if(actual_speed > 0) {
-    actual_speed -= 5;
-    tick_count = 0;
-    ticks = speed_ticks[actual_speed / 5];
-  }
+//check if anything has happened with the encoder
+void check_encoder(){
+  if(encoderPos - oldPos >0) encoder_result = 1;
+  else if(encoderPos - oldPos <0) encoder_result = -1;
+  else encoder_result = 0;
+  oldPos = encoderPos;  // reset the relative pos value
 }
 
 // Sets speed to a particular value
@@ -591,12 +596,9 @@ void change_direction(int new_direction) {
   }
 }
 
-// emergency stop: speed 0
+// emergency stop:
 void emergency_stop() {
-
-  actual_speed = 0;
-  tick_count = 0;
-  ticks = speed_ticks[actual_speed / 5];
+  disable_motor();
   running = false;
 }
 
@@ -651,11 +653,11 @@ ISR (PCINT2_vect) // handle pin change interrupt for D0 to D7 here
      if(digitalRead(EMAX)){ // MAX hit
        MAX_FLAG = true;
        // check that we are out of the calibration loop
-       if(status == C_DONE) emergency_stop();
+       //if(status == C_DONE) emergency_stop();
      }
      if(digitalRead(EMIN)){ // Min hit
        MIN_FLAG = true;
        // check that we are out of the calibration loop
-       if(status == C_DONE) emergency_stop();
+       //if(status == C_DONE) emergency_stop();
      }
  }

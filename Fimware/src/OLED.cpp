@@ -225,37 +225,39 @@ void OLED_Update() {
 
 
   //DEBUG code
-  if(DEBUG_OLED){
-    //small little debug icon
-    if(digitalRead(ENCS) == 0){
-      display.fillCircle(119,2,2,WHITE);
+  #ifdef DEBUG
+    if(DEBUG_OLED){
+      //small little debug icon
+      if(digitalRead(ENCS) == 0){
+        display.fillCircle(119,2,2,WHITE);
+      }
+      if(running){
+        display.fillCircle(122,2,2,WHITE);
+      }
+      // debug encoder pos
+      display.setTextSize(1);
+      display.setCursor(0,55);
+      display.print(encoderPos);
+      display.print(" ");
+      display.print(ticks);
+      display.print(" ");
+      display.print(tick_count);
+      display.print(" ");
+      display.print(actual_direction);
+      display.print(" ");
+      if (digitalRead(EMAX)) {
+        display.print("1");
+      }else{
+        display.print("0");
+      }
+      display.print(" ");
+      if (digitalRead(EMIN)) {
+        display.print("1");
+      }else{
+        display.print("0");
+      }
     }
-    if(running){
-      display.fillCircle(122,2,2,WHITE);
-    }
-    // debug encoder pos
-    display.setTextSize(1);
-    display.setCursor(0,55);
-    display.print(encoderPos);
-    display.print(" ");
-    display.print(ticks);
-    display.print(" ");
-    display.print(tick_count);
-    display.print(" ");
-    display.print(actual_direction);
-    display.print(" ");
-    if (digitalRead(EMAX)) {
-      display.print("1");
-    }else{
-      display.print("0");
-    }
-    display.print(" ");
-    if (digitalRead(EMIN)) {
-      display.print("1");
-    }else{
-      display.print("0");
-    }
-  }
+  #endif
 
   // write out to the display
   display.display();
