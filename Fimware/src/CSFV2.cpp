@@ -315,7 +315,7 @@ void loop() {
       if(encoder_result == 1) change_direction(FORWARD);
       else if(encoder_result == -1) change_direction(BACKWARD);
     }else if(item == STARTITEM){ // start your engines!
-      if(!running){ init_run(); running = true; }
+      if(!running){ init_run(); }
       else running = false;
       itemSelect = false; // get out the item
     }else if(item == HOUR_ITEM){ // Adjust hours
@@ -337,9 +337,9 @@ void loop() {
   }
 
   // check seconds when running
-  if(running && (millis() - oldMillis) > 1000){
+  if((millis() - oldMillis) > 1000){
     oldMillis = millis();
-    dec_secs();
+    if(running) dec_secs();
     if(hours == 0 && minutes == 0 && seconds == 0){ // end run
       end_run();
     }
@@ -520,6 +520,7 @@ void init_run(){
 
 // reinit the slider at the end of a run
 void end_run(){
+  running = false;
   // go to the min endstop
   home_min();
 
@@ -531,20 +532,24 @@ void end_run(){
 
 // Home to the min Endstop
 void home_min(){
+  // reset flags
+  MAX_FLAG = false;
+  MIN_FLAG = false;
+
   // move to min endstop first
   change_direction(BACKWARD);
   ints_step = CALIB_SPEED;
   running = true;
 
-  while(!MIN_FLAG && !MAX_FLAG){
+  while(!MIN_FLAG){
     // wait
+    if(MAX_FLAG){
+      //TODO: error checking
+    }
   }
-  if(MAX_FLAG){
-    emergency_stop();
-    //TODO: error checking
-  }else{ // min endstop
-    running = false;
-  }
+
+  // min endstop
+  running = false;
 
   change_direction(FORWARD);
   running = true;
