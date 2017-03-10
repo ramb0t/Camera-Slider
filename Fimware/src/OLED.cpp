@@ -270,7 +270,7 @@ void OLED_Clear(){
 }
 
 // prints a string in size z at x and y .
-void OLED_Print(String s, int x = 0, int y = 1, int z = 1){
+void OLED_Print(String s, int x, int y, int z){
   display.setTextSize(z);
   display.setCursor(x,y);
   display.print(s);
