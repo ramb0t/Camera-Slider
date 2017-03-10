@@ -5,7 +5,8 @@
 
 // Global Defines
 /******************************************************************************/
-//#define DEBUG
+//#define DEBUG_OLED
+//define DEBUG
 #define DEBUG_TICKS 50000
 #ifdef DEBUG
  #define DEBUG_PRINT(x)  Serial.println (x)
@@ -34,14 +35,12 @@
 
 // Timer ISR vars
 extern volatile long step_count;
-extern volatile int actual_speed;
-extern volatile int ticks;
+//extern volatile int actual_speed;
 extern volatile unsigned int tick_count;
 extern volatile bool running;
 extern volatile bool MAX_FLAG;
 extern volatile bool MIN_FLAG;
-extern volatile int status;
-extern volatile int actual_direction;
+//extern volatile int actual_direction;
 
 //Encoder vars
 extern volatile byte encoderPos;
@@ -50,7 +49,6 @@ extern volatile byte oldEncPos;
 //Debug Vars
 #ifdef DEBUG
   extern bool DEBUG_SERIAL;
-  extern bool DEBUG_OLED;
   extern volatile unsigned long debug_ticker;
 #endif
 

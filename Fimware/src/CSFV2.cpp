@@ -74,9 +74,12 @@
 #define CALIB_STEPS_SEC 0.75*STEPS_REV // Requested RPS * Steps per Rev
 #define CALIB_SPEED INTS_PSEC/(100*MICROSTEPS)  //Ints per second / steps per second
 
-#define HOME_SPEED INTS_PSEC/(800*MICROSTEPS)
+#define HOME_SPEED INTS_PSEC/(700*MICROSTEPS)
+
+#define STEPS_OFF_ENDSTOP 40*MICROSTEPS  // sets the number of steps to move off an endstop..
 
 #define HOURS_MAX   3
+#define MIN_RUN_SECS 10
 
 // ID of the settings block
 #define CONFIG_VERSION "ls1"
@@ -88,14 +91,8 @@
 /******************************************************************************/
 // debug enable
 bool DEBUG_SERIAL;
-bool DEBUG_OLED;
 
-// motor speed -> ticks mapping
-const int speed_ticks[] = {
--1, 375, 188, 125, 94, 75, 63, 54, 47, 42, 38, 34, 31, 29, 27, 6};
-
-bool dirFlag;
-bool ledFlag;
+int actual_direction;
 
 byte oldPos = 0;
 
@@ -103,10 +100,6 @@ byte oldPos = 0;
 bool itemSelect = false;
 int item = 0;
 volatile int status;
-
-// motor parameters
-volatile int actual_speed;
-volatile int actual_direction;
 
 // interrupt vars
 volatile int ticks;
@@ -128,6 +121,9 @@ int encoder_result = 0;
 byte hours;
 byte minutes;
 byte seconds;
+byte o_hours;
+byte o_minutes;
+byte o_seconds;
 int  totalRunSecs;
 long oldMillis;
 
@@ -167,7 +163,6 @@ void home_min();
 void home_max();
 void disable_motor();
 void enable_motor();
-void set_speed(int speed);
 void change_direction(int new_direction);
 void emergency_stop();
 void updateLCD();
@@ -190,10 +185,8 @@ void setup() {
   #ifdef DEBUG
     Serial.begin(115200);
     DEBUG_SERIAL = false;
-    DEBUG_OLED   = false;
   #else
   DEBUG_SERIAL = false;
-  DEBUG_OLED   = false;
   #endif
   DEBUG_PRINT("Debug Started:");
   status = C_UDEFF;
@@ -229,7 +222,6 @@ void setup() {
   digitalWrite(SDIR, LOW);
   digitalWrite(LEDR, HIGH);
   digitalWrite(LEDB, LOW);
-  dirFlag = false;
 
   DEBUG_PRINT("Getting vals from EEPROM... ");
   // Load vals from EEPROM
@@ -242,8 +234,6 @@ void setup() {
 
   DEBUG_PRINT("Init Vars... ");
    // initial values
-  actual_speed = 0;
-  actual_direction = FORWARD;
   tick_count = 0;
   ticks = -1;
   debounce = false;
@@ -257,6 +247,7 @@ void setup() {
   steps_sec = 0;
   ints_step = 0;
   ints_step_count = 0;
+  actual_direction = FORWARD;
 
 
   digitalWrite(SDIR, actual_direction);
@@ -330,6 +321,7 @@ void loop() {
 
   // check if there was an error
   if(status == S_ERROR){
+    disable_motor();
     if(MIN_FLAG){
       OLED_Clear();
       OLED_Print("Min Hit!", 0, 1, 2);
@@ -343,6 +335,13 @@ void loop() {
     // Reset flags
     MIN_FLAG = false;
     MAX_FLAG = false;
+
+    // reset time
+    seconds = o_seconds;
+    minutes = o_minutes;
+    hours = o_hours;
+
+    status = S_SLEEP;
 
   }
 
@@ -387,7 +386,7 @@ void calibrate(){
   home_min();
 
   // Do the Calibrating
-  status = C_GMAX;
+
   // reset step counter
   step_count = 0;
   // set speed
@@ -398,21 +397,34 @@ void calibrate(){
   //reset the flags
   MIN_FLAG = false;
   MAX_FLAG = false;
+  status = C_GMAX;
 
   // wait to hit an endstop
   while(!MIN_FLAG && !MAX_FLAG){
     // wait
+    OLED_Clear(false);
+    OLED_Print("Calibrating...", 0, 1, 1, false);
+    OLED_Print("Counting..", 0, 21, 2, false);
+    char buf[50];
+    ltoa(step_count, buf, 10);  // 10 is the base value not the size - look up ltoa for avr
+     // use arduino string functions because lazy..
+    OLED_Print(buf, 0, 41);
   }
+  running = false;
   if(MIN_FLAG){
-    //emergency_stop();
+    OLED_Print("Error hit Min!");
     DEBUG_PRINT("Error hit Min");
-    //TODO: error checking
-  }else{ // min endstop
-    running = false;
+    status = C_UDEFF;
+    delay(1000);
+    return; // exit...
+  }else{ // max endstop
+
   }
 
   // hit the max
   status = C_HMAX;
+  OLED_Clear();
+  OLED_Print("Calibrating...");
   OLED_Print("Max Hit... ", 0, 41, 2);
 
   status = C_FIN;
@@ -440,17 +452,22 @@ void calibrate(){
 // inits the run based on time
 void init_run(){
   enable_motor();
-  // move to min endstop first
-  home_min();
 
+  OLED_Clear();
+  OLED_Print("Home Min..", 0, 21, 2);
+  // go to the min endstop
+  home_min();
   // calculate the timer ticks..
   // Work out total seconds
   totalRunSecs = hours*3600;
   totalRunSecs += minutes*60;
   totalRunSecs += seconds;
+  if(totalRunSecs < MIN_RUN_SECS){ totalRunSecs = MIN_RUN_SECS;} // error checking
   // work out steps / second using calibration steps
-  steps_sec = calibration_steps/totalRunSecs;
-  steps_sec = steps_sec * MICROSTEPS;
+  steps_sec = calibration_steps * MICROSTEPS; // cal steps * current MICROSTEPS
+  steps_sec = steps_sec - (2*STEPS_OFF_ENDSTOP); // take endstop offsets off
+  steps_sec = steps_sec/totalRunSecs; // divide by the total time
+
   // work out num interrupt ticks per step (SPEED)
   ints_step = INTS_PSEC/steps_sec;
 
@@ -468,6 +485,11 @@ void init_run(){
 
   oldMillis = millis();
 
+  // store the original time vars
+  o_seconds = seconds;
+  o_minutes = minutes;
+  o_hours = hours;
+
   status = S_RUN;
   // start run
   running = true;
@@ -479,13 +501,15 @@ void end_run(){
   running = false;
   status = S_SLEEP;
   OLED_Clear();
+  OLED_Print("Done!", 0, 1, 2);
   OLED_Print("Home Min..", 0, 21, 2);
   // go to the min endstop
   home_min();
 
   running = false;
-  //TODO make this a default
-  seconds = 10;
+  seconds = o_seconds;
+  minutes = o_minutes;
+  hours = o_hours;
   item = STARTITEM; // default screen
   disable_motor();
 }
@@ -508,12 +532,14 @@ void home_min(){
     }
   }
 
-  // min endstop
+  // min endstop hit
   running = false;
 
+  // move off endstop
   change_direction(FORWARD);
+  step_count = 0;
   running = true;
-  while(digitalRead(EMIN)){
+  while(step_count < STEPS_OFF_ENDSTOP){
     //wait...
   }
   running = false;
@@ -542,12 +568,11 @@ void home_max(){
     }
   }
 
-  // min endstop
+  // max endstop, move off:
   running = false;
-
-  change_direction(BACKWARD);
+  step_count = 0;
   running = true;
-  while(digitalRead(EMAX)){
+  while(step_count < STEPS_OFF_ENDSTOP){
     //wait...
   }
   running = false;
@@ -595,16 +620,6 @@ void check_encoder(){
   else if(encoderPos - oldPos <0) encoder_result = -1;
   else encoder_result = 0;
   oldPos = encoderPos;  // reset the relative pos value
-}
-
-// Sets speed to a particular value
-void set_speed(int speed) {
-
-  if(speed > 0 && speed < MAX_SPEED) {
-    actual_speed = speed;
-    tick_count = 0;
-    ticks = speed_ticks[actual_speed / 5];
-  }
 }
 
 // change direction if needed
@@ -677,7 +692,7 @@ ISR (PCINT2_vect) // handle pin change interrupt for D0 to D7 here
        MIN_FLAG = true;
      }
      if(MIN_FLAG || MAX_FLAG){
-       if(status == S_RUN){ // we are running and hit an endstop
+       if(status == S_RUN || status == C_GMAX){ // we are running and hit an endstop
          running = false;
          status = S_ERROR;
        }

@@ -225,54 +225,54 @@ void OLED_Update() {
 
 
   //DEBUG code
-  #ifdef DEBUG
-    if(DEBUG_OLED){
-      //small little debug icon
-      if(digitalRead(ENCS) == 0){
-        display.fillCircle(119,2,2,WHITE);
-      }
-      if(running){
-        display.fillCircle(122,2,2,WHITE);
-      }
-      // debug encoder pos
-      display.setTextSize(1);
-      display.setCursor(0,55);
-      display.print(encoderPos);
-      display.print(" ");
-      display.print(ticks);
-      display.print(" ");
-      display.print(tick_count);
-      display.print(" ");
-      display.print(actual_direction);
-      display.print(" ");
-      if (digitalRead(EMAX)) {
-        display.print("1");
-      }else{
-        display.print("0");
-      }
-      display.print(" ");
-      if (digitalRead(EMIN)) {
-        display.print("1");
-      }else{
-        display.print("0");
-      }
+  #ifdef DEBUG_OLED
+    //small little debug icon
+    if(digitalRead(ENCS) == 0){
+      display.fillCircle(119,2,2,WHITE);
     }
-  #endif
+    if(running){
+      display.fillCircle(122,2,2,WHITE);
+    }
+    // debug encoder pos
+    display.setTextSize(1);
+    display.setCursor(0,55);
+    display.print(encoderPos);
+    display.print(" ");
+    display.print(status);
+    display.print(" ");
+    display.print(step_count);
+    display.print(" ");
+    //display.print(actual_direction);
+    //display.print(" ");
+    if (digitalRead(EMAX)) {
+      display.print("1");
+    }else{
+      display.print("0");
+    }
+    display.print(MAX_FLAG);
+    display.print(" ");
+    if (digitalRead(EMIN)) {
+      display.print("1");
+    }else{
+      display.print("0");
+    }
+    display.print(MIN_FLAG);
+  #endif // debug oled
 
   // write out to the display
   display.display();
 }
 
 // clear the OLED
-void OLED_Clear(){
+void OLED_Clear(bool d){
   display.clearDisplay();
-  display.display();
+  if(d) display.display();
 }
 
 // prints a string in size z at x and y .
-void OLED_Print(String s, int x, int y, int z){
+void OLED_Print(String s, int x, int y, int z, bool d){
   display.setTextSize(z);
   display.setCursor(x,y);
   display.print(s);
-  display.display();
+  if(d) display.display();
 }
