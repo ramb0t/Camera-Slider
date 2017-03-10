@@ -343,6 +343,7 @@ void loop() {
     // Reset flags
     MIN_FLAG = false;
     MAX_FLAG = false;
+
   }
 
   // Debug OUTPUT
@@ -381,10 +382,9 @@ void calibrate(){
 
   enable_motor();
   //Home min first
+  OLED_Print("Home Min..", 0, 21, 2);
   status = C_HMIN;
   home_min();
-
-  OLED_Print("Home Min..", 0, 21, 2);
 
   // Do the Calibrating
   status = C_GMAX;
@@ -468,6 +468,7 @@ void init_run(){
 
   oldMillis = millis();
 
+  status = S_RUN;
   // start run
   running = true;
 }
@@ -476,10 +477,14 @@ void init_run(){
 // reinit the slider at the end of a run
 void end_run(){
   running = false;
+  status = S_SLEEP;
+  OLED_Clear();
+  OLED_Print("Home Min..", 0, 21, 2);
   // go to the min endstop
   home_min();
 
   running = false;
+  //TODO make this a default
   seconds = 10;
   item = STARTITEM; // default screen
   disable_motor();
