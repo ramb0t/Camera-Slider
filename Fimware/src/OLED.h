@@ -24,5 +24,7 @@
 void OLED_Init();
 void OLED_DisplayLogo();
 void OLED_Update();
+void OLED_Clear();
+void OLED_Print(String s, int x, int y, int z); // prints a string in size z at x and y . 
 
 #endif

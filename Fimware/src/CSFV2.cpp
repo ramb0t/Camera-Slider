@@ -52,6 +52,10 @@
 #define C_GMIN    5
 #define C_FIN     6
 #define C_DONE    7
+// Running states
+#define S_SLEEP   8
+#define S_RUN     9
+#define S_ERROR   10
 
 // buttons code
 #define btnRIGHT  0
@@ -324,6 +328,23 @@ void loop() {
     }
   }
 
+  // check if there was an error
+  if(status == S_ERROR){
+    if(MIN_FLAG){
+      OLED_Clear();
+      OLED_Print("Min Hit!", 0, 1, 2);
+      delay(1000);
+    }
+    if(MAX_FLAG){
+      OLED_Clear();
+      OLED_Print("MAX Hit!", 0, 1, 2);
+      delay(3000);
+    }
+    // Reset flags
+    MIN_FLAG = false;
+    MAX_FLAG = false;
+  }
+
   // Debug OUTPUT
   #ifdef DEBUG
     if(debug_ticker >= DEBUG_TICKS){
@@ -355,21 +376,15 @@ void calibrate(){
   status = C_INIT;
 
   // Tell the user what we are doing
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0,1);
-  display.print("Calibrating... ");
-  display.setTextSize(2);
-  display.display();
+  OLED_Clear();
+  OLED_Print("Calibrating...");
 
   enable_motor();
   //Home min first
   status = C_HMIN;
   home_min();
 
-  display.setCursor(0,21);
-  display.print("Home Min..");
-  display.display();
+  OLED_Print("Home Min..", 0, 21, 2);
 
   // Do the Calibrating
   status = C_GMAX;
@@ -398,14 +413,9 @@ void calibrate(){
 
   // hit the max
   status = C_HMAX;
-  display.setCursor(0,41);
-  display.print("Max Hit... ");
-  display.display();
-
+  OLED_Print("Max Hit... ", 0, 41, 2);
 
   status = C_FIN;
-
-  delay(1000);
 
   // store steps counted
   calibration_steps = step_count;
@@ -420,7 +430,12 @@ void calibrate(){
   // Finally done!
   status = C_DONE;
   disable_motor();
+  OLED_Clear();
+  OLED_Print("Done!", 0 , 1 , 2);
+  delay(1000);
 }
+
+
 
 // inits the run based on time
 void init_run(){
@@ -652,12 +667,14 @@ ISR (PCINT2_vect) // handle pin change interrupt for D0 to D7 here
  {
      if(digitalRead(EMAX)){ // MAX hit
        MAX_FLAG = true;
-       // check that we are out of the calibration loop
-       //if(status == C_DONE) emergency_stop();
      }
      if(digitalRead(EMIN)){ // Min hit
        MIN_FLAG = true;
-       // check that we are out of the calibration loop
-       //if(status == C_DONE) emergency_stop();
+     }
+     if(MIN_FLAG || MAX_FLAG){
+       if(status == S_RUN){ // we are running and hit an endstop
+         running = false;
+         status = S_ERROR;
+       }
      }
  }

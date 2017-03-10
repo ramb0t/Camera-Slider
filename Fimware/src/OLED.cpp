@@ -262,3 +262,17 @@ void OLED_Update() {
   // write out to the display
   display.display();
 }
+
+// clear the OLED
+void OLED_Clear(){
+  display.clearDisplay();
+  display.display();
+}
+
+// prints a string in size z at x and y .
+void OLED_Print(String s, int x = 0, int y = 1, int z = 1){
+  display.setTextSize(z);
+  display.setCursor(x,y);
+  display.print(s);
+  display.display();
+}
