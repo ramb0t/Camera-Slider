@@ -93,6 +93,7 @@
 bool DEBUG_SERIAL;
 
 int actual_direction;
+int enc_dir = -1; // sets fwd or reverse for the encoder
 
 byte oldPos = 0;
 
@@ -131,6 +132,7 @@ long oldMillis;
 long steps_sec;
 long ints_step;
 long ints_step_count;
+byte speed;
 
 // Structs
 /******************************************************************************/
@@ -163,6 +165,7 @@ void home_min();
 void home_max();
 void disable_motor();
 void enable_motor();
+void change_speed(int new_speed);
 void change_direction(int new_direction);
 void emergency_stop();
 void updateLCD();
@@ -248,6 +251,7 @@ void setup() {
   ints_step = 0;
   ints_step_count = 0;
   actual_direction = FORWARD;
+  speed = 100;
 
 
   digitalWrite(SDIR, actual_direction);
@@ -284,8 +288,7 @@ void loop() {
   }
   else{ // in item selected mode
     if(item == SPEEDITEM){ // in speed mode
-      //if(encoder_result == 1) increase_speed();
-      //else if(encoder_result == -1) decrease_speed();
+      change_speed(encoder_result);
     }else if(item == DIRITEM){ // in direction mode
       if(encoder_result == 1) change_direction(FORWARD);
       else if(encoder_result == -1) change_direction(BACKWARD);
@@ -616,10 +619,19 @@ void read_buttons() {
 
 //check if anything has happened with the encoder
 void check_encoder(){
-  if(encoderPos - oldPos >0) encoder_result = 1;
-  else if(encoderPos - oldPos <0) encoder_result = -1;
+  if(encoderPos - oldPos >0) encoder_result = 1*enc_dir;
+  else if(encoderPos - oldPos <0) encoder_result = -1*enc_dir;
   else encoder_result = 0;
   oldPos = encoderPos;  // reset the relative pos value
+}
+
+// Change the speed
+void change_speed(int spdChng){
+  if (spdChng > 0 && speed < 100){ // inc speed, watch out for max 100%
+    speed++;
+  }else if(spdChng < 0 && speed > 0){ // dec speed, watch out for min 0%
+    speed--;
+  }
 }
 
 // change direction if needed

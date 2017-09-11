@@ -148,10 +148,65 @@ void OLED_Update() {
     X = 0; Y = 44;
     display.setCursor(X, Y);
     display.setTextSize(1);
-    display.print("Calibrate ");
+    display.print("Speed ");
     display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
   } // end first page
-  // Second Page: Calibrate
+  // Second Page: Speed
+  else if(item == SPEEDITEM || item == DIRITEM){
+    // print first line:
+    display.setTextSize(2);
+    X = 0; Y = 0;
+    // |Speed:|
+    if(itemSelect && item == SPEEDITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      display.print("Speed: ");
+      display.print(speed);
+      display.print("%");
+      display.setTextColor(WHITE);
+    }else if(item == SPEEDITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.print("Speed:");
+      display.print(speed);
+      display.print("%");
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      display.print("Speed:");
+      display.print(speed);
+      display.print("%");
+    }
+
+    // print second line:
+    X = 0; Y = 22;
+    // Dir:
+    if(itemSelect && item == DIRITEM){    //Selected > Draw Filled Rect
+      display.fillRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      display.setTextColor(BLACK);
+      if(actual_direction == FORWARD) display.print("Dir: A-B");
+      else if (actual_direction == BACKWARD) display.print("Dir: B-A");
+      display.setTextColor(WHITE);
+    }else if(item == DIRITEM){            //Hover    > Draw Rect
+      display.drawRect(X,Y,127,20,WHITE);
+      display.setCursor(X+3,Y+3);
+      if(actual_direction == FORWARD) display.print("Dir: A-B");
+      else if (actual_direction == BACKWARD) display.print("Dir: B-A");
+    }else{                                  // Just Print Value
+      display.setCursor(X+3,Y+3);
+      if(actual_direction == FORWARD) display.print("Dir: A-B");
+      else if (actual_direction == BACKWARD) display.print("Dir: B-A");
+    }
+    // print third line:
+    // time
+    X = 0; Y = 42;
+    display.setCursor(X, Y);
+    display.setTextSize(1);
+    display.print("Calibrate ");
+    display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
+  } // end second page
+  // Third Page: Calibrate
   else if(item == CAL_ITEM){
     // print first line:
     display.setTextSize(2);
@@ -174,7 +229,7 @@ void OLED_Update() {
 
     // print second line:
     X = 0; Y = 22;
-    // Steps:
+    // Direction:
     display.setCursor(X, Y);
     display.print("Stps:");
     display.print(calibration_steps);
@@ -186,7 +241,7 @@ void OLED_Update() {
     display.setTextSize(1);
     display.print("Time ");
     display.drawChar(X+60, Y, 0x19, WHITE, BLACK, 1);
-  } // end second page
+  } // end Third page
   else if(item == FRUN_ITEM){
     // print first line:
     display.setTextSize(2);

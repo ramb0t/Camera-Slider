@@ -15,15 +15,15 @@
 #endif
 
 // Menu states
-#define SPEEDITEM -1
-#define DIRITEM   -1
+#define SPEEDITEM 4
+#define DIRITEM   5
 #define STARTITEM 3
 #define HOUR_ITEM 0
 #define MIN_ITEM  1
 #define SEC_ITEM  2
-#define CAL_ITEM  4
-#define FRUN_ITEM 5
-#define ITEMEND   4
+#define CAL_ITEM  6
+#define FRUN_ITEM 7
+#define ITEMEND   6
 
 // Directions
 #define FORWARD   HIGH
@@ -66,6 +66,8 @@ extern byte seconds;
 extern long steps_sec;
 extern long ints_step;
 extern long ints_step_count;
+extern byte speed;
+extern int actual_direction;
 
 // Calibration Variables
 extern long calibration_steps;
